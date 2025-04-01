@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Крестики-нолики ( Человек vs. Бот )</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+        }
+        
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-gap: 5px;
+            margin: 20px auto;
+            width: 315px;
+        }
+        
+        .cell {
+            width: 100px;
+            height: 100px;
+            border: 1px solid black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 60px;
+            cursor: pointer;
+        }
+        
+        .cell:hover {
+            background-color: #eee;
+        }
+        
+        .message {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Крестики-нолики</h1>
+
+    <div class="board" id="board">
+        <div class="cell" data-index="0"></div>
+        <div class="cell" data-index="1"></div>
+        <div class="cell" data-index="2"></div>
+        <div class="cell" data-index="3"></div>
+        <div class="cell" data-index="4"></div>
+        <div class="cell" data-index="5"></div>
+        <div class="cell" data-index="6"></div>
+        <div class="cell" data-index="7"></div>
+        <div class="cell" data-index="8"></div>
+    </div>
+
+    <div class="message" id="message">Ваш ход! (Крестики)</div>
+    <button onclick="resetGame()">Новая игра</button>
+
+    <script>
+        let board = ["", "", "", "", "", "", "", "", ""];
+        let currentPlayer = "X";
+        let gameActive = true;
+
+        const boardElement = document.getElementById("board");
+        const messageElement = document.getElementById("message");
+
+        function handleCellClick(event) {
+            const index = parseInt(event.target.dataset.index, 10);
+
+            if (board[index] === "" && gameActive) {
+                board[index] = currentPlayer;
+                event.target.textContent = currentPlayer;
+                if (checkWin()) {
+                    messageElement.textContent = `Победил ${currentPlayer}!`;
+                    gameActive = false;
+                    return;
+                }
+                if (checkDraw()) {
+                    messageElement.textContent = "Ничья!";
+                    gameActive = false;
+                    return;
+                }
+                currentPlayer = "O";
+                messageElement.textContent = "Ход бота...";
+                gameActive = false;
+                setTimeout(botMove, 500);
+            }
+        }
+
+
+        function botMove() {
+            let availableMoves = board.map((cell, index) => cell === "" ? index : -1).filter(i => i !== -1);
+
+            if (availableMoves.length > 0) {
+                const randomIndex = Math.floor(Math.random() * availableMoves.length);
+                const botChoice = availableMoves[randomIndex];
+                board[botChoice] = "O";
+                const cellElement = document.querySelector(`[data-index="${botChoice}"]`);
+                if (cellElement) {
+                    cellElement.textContent = "O";
+                } else {
+                    console.error("Cell element not found for index:", botChoice);
+                }
+
+                if (checkWin()) {
+                    messageElement.textContent = "Победил бот!";
+                    gameActive = false;
+                    return;
+                }
+                if (checkDraw()) {
+                    messageElement.textContent = "Ничья!";
+                    gameActive = false;
+                    return;
+                }
+                currentPlayer = "X";
+                messageElement.textContent = "Ваш ход! (Крестики)";
+                gameActive = true;
+            }
+        }
+
+
+        function checkWin() {
+            const winPatterns = [
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
+                [0, 4, 8],
+                [2, 4, 6]
+            ];
+
+            for (const pattern of winPatterns) {
+                const [a, b, c] = pattern;
+                if (board[a] === board[b] && board[b] === board[c] && board[a] !== "") {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function checkDraw() {
+            return board.every(cell => cell !== "");
+        }
+
+        function resetGame() {
+            board = ["", "", "", "", "", "", "", "", ""];
+            currentPlayer = "X";
+            gameActive = true;
+            messageElement.textContent = "Ваш ход! (Крестики)";
+            const cells = document.querySelectorAll(".cell");
+            cells.forEach(cell => cell.textContent = "");
+        }
+
+
+        const cells = document.querySelectorAll(".cell");
+        cells.forEach(cell => cell.addEventListener("click", handleCellClick));
+        resetGame();
+    </script>
+
+</body>
+
+</html>
